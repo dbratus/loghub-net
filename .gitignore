@@ -1,0 +1,5 @@
+LogHub.sln
+LogHub/obj/
+LogHubTest/bin/
+LogHubTest/obj/
+packages/
