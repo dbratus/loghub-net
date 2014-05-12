@@ -48,7 +48,7 @@
     <Compile Include="ExceptionEventArgs.cs" />
     <Compile Include="Protocol\Actions.cs" />
     <Compile Include="Protocol\IncomingLogEntry.cs" />
-    <Compile Include="Protocol\JStreamParser.cs" />
+    <Compile Include="Protocol\JStream.cs" />
     <Compile Include="LogEntry.cs" />
     <Compile Include="LogHubClient.cs" />
     <Compile Include="LogInfo.cs" />

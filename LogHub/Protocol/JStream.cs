@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 
 namespace LogHub.Protocol
 {
-	internal class JStreamParser
+	internal class JStream
 	{
 		private const int DefaultCapacity = 256;
 		private static readonly byte[] Terminator = new byte[] { 0 };
@@ -25,7 +25,7 @@ namespace LogHub.Protocol
 		private int _readLim;
 		private int _readIdx;
 
-		public JStreamParser(Stream stream)
+		public JStream(Stream stream)
 		{
 			_stream = stream;
 		}

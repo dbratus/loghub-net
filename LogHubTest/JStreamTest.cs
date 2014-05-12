@@ -21,7 +21,7 @@ namespace LogHubTest
 		public void WriteRead()
 		{
 			var stream = new MemoryStream();
-			var parser = new JStreamParser(stream);
+			var parser = new JStream(stream);
 
 			parser.Write
 			(
