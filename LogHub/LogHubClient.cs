@@ -16,7 +16,7 @@ namespace LogHub
 	{
 		private static readonly TimeSpan WriteBufferFlushInterval = TimeSpan.FromMilliseconds(100);
 		private const int WriteBufferFlushLength = 100;
-		private static readonly DateTime UnixEpoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+		internal static readonly DateTime UnixEpoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 
 		private readonly ConnectionPool _connectionPool;
 		private readonly Chan<IncomingLogEntry> _writeChan;
@@ -128,7 +128,7 @@ namespace LogHub
 				return;
 			}
 
-			var isConnBroken = false;
+			var isConnectionBroken = false;
 
 			try
 			{
@@ -142,11 +142,11 @@ namespace LogHub
 				}
 				catch (Exception) { }
 
-				isConnBroken = true;
+				isConnectionBroken = true;
 			}
 
 			Interlocked.Decrement(ref _activeOpsCount);
-			await _connectionPool.ReleaseConnection(connResult.Result, isConnBroken);
+			await _connectionPool.ReleaseConnection(connResult.Result, isConnectionBroken);
 		}
 
 		private async void Write(Chan<IncomingLogEntry> entriesToWrite)
