@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Net.Security;
 using System.Net.Sockets;
 using System.Security;
@@ -37,7 +38,9 @@ namespace LogHub
 
 			if (useTls)
 			{
-				var sslStream = new SslStream(client.GetStream());
+				var sslStream = (skipCertValidation) ? 
+					new SslStream(client.GetStream(), false, (sender, certificate, chain, errors) => true) :
+					new SslStream(client.GetStream());
 
 				await sslStream.AuthenticateAsClientAsync
 				(
@@ -46,11 +49,6 @@ namespace LogHub
 					SslProtocols.Default, 
 					!skipCertValidation
 				);
-
-				if (!sslStream.IsSigned && !skipCertValidation)
-				{
-					throw new SecurityException("The server certificate is not signed by CA.");
-				}
 
 				return new Connection(client, sslStream);
 			}

@@ -42,9 +42,9 @@ namespace LogHub
 				(sender, args) => OnError(args);
 
 			_writeChan = new Chan<IncomingLogEntry>();
-			_writer = Writer();
-
 			_closeChan = new Chan<bool>();
+
+			_writer = Writer();
 
 			_user = options.User;
 			_password = options.Password;
@@ -172,6 +172,8 @@ namespace LogHub
 						async ent => 
 							await jStream.Write(ent)
 					);
+
+					await jStream.Terminate();
 				},
 				async () => 
 					await entriesToWrite.Purge()
@@ -232,17 +234,34 @@ namespace LogHub
 						}
 					);
 
-					foreach (var src in sources)
+					if (sources.Length > 0)
+					{
+						foreach (var src in sources)
+						{
+							await jStream.Write
+							(
+								new LogQuery
+								{
+									From = DateTimeToTs(from),
+									To = DateTimeToTs(to),
+									MinSev = minSeverity,
+									MaxSev = maxSeverity,
+									Src = src
+								}
+							);
+						}
+					}
+					else
 					{
 						await jStream.Write
 						(
-							new LogQuery 
+							new LogQuery
 							{
 								From = DateTimeToTs(from),
 								To = DateTimeToTs(to),
 								MinSev = minSeverity,
 								MaxSev = maxSeverity,
-								Src = src
+								Src = string.Empty
 							}
 						);
 					}
@@ -268,7 +287,7 @@ namespace LogHub
 					result.Close();
 				},
 				() =>
-					Task.Run(() => result.Close())
+					Task.Factory.StartNew(result.Close)
 			);
 		}
 
@@ -282,7 +301,31 @@ namespace LogHub
 				{
 					var jStream = new JStream(conn.Stream);
 
-					foreach (var src in sources)
+					if (sources.Length > 0)
+					{
+						foreach (var src in sources)
+						{
+							await jStream.Write
+							(
+								new MessageHeader
+								{
+									Action = Actions.Truncate,
+									Pass = _password,
+									Usr = _user
+								}
+							);
+
+							await jStream.Write
+							(
+								new Truncate
+								{
+									Lim = DateTimeToTs(limit),
+									Src = src
+								}
+							);
+						}
+					}
+					else
 					{
 						await jStream.Write
 						(
@@ -299,7 +342,7 @@ namespace LogHub
 							new Truncate
 							{
 								Lim = DateTimeToTs(limit),
-								Src = src
+								Src = string.Empty
 							}
 						);
 					}
@@ -351,6 +394,8 @@ namespace LogHub
 							}
 						);
 					}
+
+					result.Close();
 				},
 				null
 			);
@@ -362,17 +407,18 @@ namespace LogHub
 
 			_isClosed = true;
 
-			_connectionPool.Dispose();
-
 			while (Interlocked.Read(ref _activeOpsCount) > 0)
 			{
 				Thread.Yield();
 			}
 
+			_writeChan.Close();
 			_closeChan
 				.Send(true)
 				.ContinueWith(_ => _writer.Wait())
 				.Wait();
+
+			_connectionPool.Dispose();
 		}
 
 		public void Dispose()
@@ -382,12 +428,12 @@ namespace LogHub
 
 		internal static long DateTimeToTs(DateTime dateTime)
 		{
-			return (long)((dateTime.ToUniversalTime() - UnixEpoch).TotalMilliseconds * 1000000);
+			return (long)(Math.Floor((dateTime.ToUniversalTime() - UnixEpoch).TotalMilliseconds) * 1000000);
 		}
 
 		internal static DateTime DateTimeFromTs(long jsDateTime)
 		{
-			return (UnixEpoch + TimeSpan.FromMilliseconds(jsDateTime / 1000000.0)).ToLocalTime();
+			return (UnixEpoch + TimeSpan.FromMilliseconds(Math.Floor(jsDateTime / 1000000.0))).ToLocalTime();
 		}
 
 		public event EventHandler<ExceptionEventArgs> Error;

@@ -186,13 +186,13 @@ namespace LogHub
 							await _getConnChan.ForEach(c => c.Close());
 							await _putConnChan.ForEach
 							(
-								c => 
+								c =>
 								{
 									try
 									{
 										c.Close();
-									} 
-									catch(Exception ex)
+									}
+									catch (Exception ex)
 									{
 										OnError(new ExceptionEventArgs(ex));
 									}
@@ -219,7 +219,7 @@ namespace LogHub
 								{
 									conn.Close();
 								}
-								catch(Exception ex)
+								catch (Exception ex)
 								{
 									OnError(new ExceptionEventArgs(ex));
 								}
