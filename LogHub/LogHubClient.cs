@@ -12,6 +12,9 @@ using NChannels;
 
 namespace LogHub
 {
+	/// <summary>
+	/// LogHub client.
+	/// </summary>
 	public sealed class LogHubClient : IDisposable
 	{
 		private static readonly TimeSpan WriteBufferFlushInterval = TimeSpan.FromMilliseconds(100);
@@ -28,8 +31,18 @@ namespace LogHub
 		private long _activeOpsCount;
 		private bool _isClosed;
 
+		/// <summary>
+		/// Creates a new client.
+		/// </summary>
+		/// <param name="host">Host of a log or hub.</param>
+		/// <param name="port">Port of a log or hub.</param>
+		/// <param name="options">Client options.</param>
 		public LogHubClient(string host, int port, ClientOptions options)
 		{
+			if (string.IsNullOrEmpty(host)) throw new ArgumentException("Host must be specified.");
+			if (port <= 0) throw new ArgumentException("Invalid port.");
+			if (options.MaxConnections < 1) throw new ArgumentException("Invalid maximum connections limit.");
+
 			_connectionPool = new ConnectionPool
 			(
 				host, 
@@ -180,9 +193,18 @@ namespace LogHub
 			);
 		}
 
+		/// <summary>
+		/// Writes a single entry to the log.
+		/// </summary>
+		/// <param name="severity">The severity of the entry.</param>
+		/// <param name="source">The source of the entry.</param>
+		/// <param name="message">The message.</param>
 		public void Write(int severity, string source, string message)
 		{
 			if (_isClosed) throw new ObjectDisposedException("The object is disposed.");
+			if (severity < 0 || severity > 255) throw new ArgumentException("Severity must be within [1; 255].");
+			if (string.IsNullOrEmpty(source)) throw new ArgumentException("Source must be specified.");
+			if (string.IsNullOrEmpty(message)) throw new ArgumentException("Message must be specified.");
 
 			_writeChan.Send
 			(
@@ -205,9 +227,20 @@ namespace LogHub
 			);
 		}
 
+		/// <summary>
+		/// Reads log entries.
+		/// </summary>
+		/// <param name="from">The start of the timestamp range.</param>
+		/// <param name="to">The end of the timestamp range.</param>
+		/// <param name="minSeverity">Minimal severity of the entries to return.</param>
+		/// <param name="maxSeverity">Maximal severity of the entries to return.</param>
+		/// <param name="sources">Regular expressions that the log sources must match.</param>
+		/// <returns>Channel of log entries.</returns>
 		public Chan<LogEntry> Read(DateTime from, DateTime to, int minSeverity, int maxSeverity, params string[] sources)
 		{
 			if (_isClosed) throw new ObjectDisposedException("The object is disposed.");
+			if (minSeverity < 0 || minSeverity > 255) throw new ArgumentException("Severity must be within [1; 255].");
+			if (maxSeverity < 0 || maxSeverity > 255) throw new ArgumentException("Severity must be within [1; 255].");
 
 			var result = new Chan<LogEntry>();
 			
@@ -291,6 +324,12 @@ namespace LogHub
 			);
 		}
 
+		/// <summary>
+		/// Truncates the log from the specified limit.
+		/// </summary>
+		/// <param name="limit">The time before which the log entries must be truncated.</param>
+		/// <param name="sources">Regular expressions that the log sources must match.</param>
+		/// <returns>A task representing the completion of the message sending operation.</returns>
 		public async Task Truncate(DateTime limit, params string[] sources)
 		{
 			if (_isClosed) throw new ObjectDisposedException("The object is disposed.");
@@ -351,6 +390,10 @@ namespace LogHub
 			);
 		}
 
+		/// <summary>
+		/// Returns information on the logs.
+		/// </summary>
+		/// <returns>A channel of log information entries.</returns>
 		public Chan<LogInfo> Stat()
 		{
 			if (_isClosed) throw new ObjectDisposedException("The object is disposed.");
@@ -401,6 +444,9 @@ namespace LogHub
 			);
 		}
 
+		/// <summary>
+		/// Closes the client.
+		/// </summary>
 		public void Close()
 		{
 			if (_isClosed) return;
@@ -421,6 +467,9 @@ namespace LogHub
 			_connectionPool.Dispose();
 		}
 
+		/// <summary>
+		/// Disposes the client.
+		/// </summary>
 		public void Dispose()
 		{
 			Close();

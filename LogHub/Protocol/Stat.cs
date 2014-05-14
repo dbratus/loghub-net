@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 namespace LogHub.Protocol
 {
 	[DataContract]
-	public class Stat
+	internal class Stat
 	{
 		[DataMember]
 		public string Addr { get; set; }

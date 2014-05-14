@@ -3,3 +3,5 @@ LogHub/obj/
 LogHubTest/bin/
 LogHubTest/obj/
 packages/
+*.nupkg
+TestResult.xml

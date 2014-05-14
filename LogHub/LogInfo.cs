@@ -5,10 +5,24 @@
 
 namespace LogHub
 {
+	/// <summary>
+	/// Log information.
+	/// </summary>
 	public sealed class LogInfo
 	{
+		/// <summary>
+		/// Address of the log.
+		/// </summary>
 		public string Address { get; set; }
+
+		/// <summary>
+		/// The current size of the log.
+		/// </summary>
 		public long Size { get; set; }
+
+		/// <summary>
+		/// The soft size limit of the log.
+		/// </summary>
 		public long Limit { get; set; }
 	}
 }
