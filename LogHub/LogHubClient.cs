@@ -116,7 +116,7 @@ namespace LogHub
 
 						if (buf.Count > 0)
 						{
-							flushBuffer(true);
+							await flushBuffer(true);
 						}
 					})
 					.End();

@@ -19,7 +19,7 @@ using System.Runtime.InteropServices;
 
 [assembly: Guid("f5dfa923-319d-4d0f-9678-2db12ff92201")]
 
-[assembly: AssemblyVersion("0.1.1")]
-[assembly: AssemblyFileVersion("0.1.1")]
+[assembly: AssemblyVersion("0.1.2")]
+[assembly: AssemblyFileVersion("0.1.2")]
 
 [assembly: InternalsVisibleTo("LogHubTest")]
